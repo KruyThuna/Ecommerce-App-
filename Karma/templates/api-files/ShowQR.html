@@ -1,0 +1,40 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Image Display</title>
+    <script>
+        function onOptionChange() {
+            const selectedId = document.getElementById('dropdown').value;
+            if (selectedId) {
+                fetch(`/get-image/?id=${selectedId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const imageElement = document.getElementById('imageDisplay');
+                        if (data.image_url) {
+                            imageElement.src = '/static' +  data.image_url;
+                            imageElement.style.display = 'block';
+                        } else {
+                            imageElement.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Select an Option to Display an Image</h1>
+    <select id="dropdown" onchange="onOptionChange()">
+        <option value="" disabled selected>Select an option</option>
+        {% for option in options %}
+        <option value="{{ option.id }}">{{ option.name }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+    <img id="imageDisplay" src="" alt="Selected Image" style="display: none; max-width: 400px;"/>
+</body>
+</html>
+

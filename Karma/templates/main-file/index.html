@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx" class="no-js">
+  <head>
+    <!-- Mobile Specific Meta -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!-- Favicon-->
+    <link rel="shortcut icon" href="{% static 'img/fav.png'%}" />
+    <!-- Author Meta -->
+    <meta name="author" content="CodePixar" />
+    <!-- Meta Description -->
+    <meta name="description" content="" />
+    <!-- Meta Keyword -->
+    <meta name="keywords" content="" />
+    <!-- meta character set -->
+    <meta charset="UTF-8" />
+    <!-- Site Title -->
+    <title>Karma Shop</title>
+    <!--
+		CSS
+			============================================= -->
+
+    {% include 'sub-file/css-style.html' %}
+  </head>
+
+  <body>
+    <!-- Start Header Area -->
+    {% include 'sub-file/header-menu.html' %}
+    <!-- End Header Area -->
+
+    <!-- start banner Area -->
+    {% include 'sub-file/banner.html' %}
+    <!-- End banner Area -->
+
+    <!-- start features Area -->
+    {% include 'sub-file/features.html' %}
+    <!-- end features Area -->
+
+    <!-- Start category Area -->
+    {% include 'sub-file/blog-category.html' %}
+
+    <!-- End category Area -->
+
+    <!-- start product Area -->
+    {% include 'sub-file/latest-coming-product.html' %}
+
+    <!-- end product Area -->
+
+    <!-- Start exclusive deal Area -->
+    {% include 'sub-file/exclusive-time.html' %}
+    <!-- End exclusive deal Area -->
+
+    <!-- Start brand Area -->
+    {% include 'sub-file/brand-area.html' %}
+    <!-- End brand Area -->
+
+    <!-- Start related-product Area -->
+    {% include 'sub-file/related-product.html' %}
+    <!-- End related-product Area -->
+
+    <!-- start footer Area -->
+    {% include 'sub-file/footer.html' %}
+    <!-- End footer Area -->
+
+    {% include 'sub-file/javascript.html' %}
+  </body>
+</html>

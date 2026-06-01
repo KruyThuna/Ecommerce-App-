@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image Carousel by ImageTypeID</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+  <h2>Image Carousel (Filtered by ImageType)</h2>
+
+  <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators" id="carouselIndicators"></div>
+    <div class="carousel-inner" id="carouselInner"></div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  const IMAGE_API = "/images/";
+  const targetImageTypeId = 2;  // <-- CHANGE this ID if needed
+
+  fetch(IMAGE_API)
+    .then(res => res.json())
+    .then(images => {
+      const filteredImages = images.filter(img => img.ImageTypeID === targetImageTypeId);
+      const indicators = document.getElementById("carouselIndicators");
+      const inner = document.getElementById("carouselInner");
+
+      if (filteredImages.length === 0) {
+        inner.innerHTML = "<p>No images found for this ImageType.</p>";
+        return;
+      }
+
+      filteredImages.forEach((img, index) => {
+        indicators.innerHTML += `
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="${index}"
+            ${index === 0 ? 'class="active" aria-current="true"' : ""} aria-label="Slide ${index + 1}">
+          </button>
+        `;
+
+        inner.innerHTML += `
+          <div class="carousel-item ${index === 0 ? "active" : ""}">
+            <img src="${img.ImageURL}" class="d-block w-100" alt="${img.ImageName}" style="max-height: 500px; object-fit: cover;">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>${img.ImageName}</h5>
+              <p>${img.ImageLink}</p>
+            </div>
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      console.error("Image load error:", err);
+      document.getElementById("carouselInner").innerHTML = "<p>Error loading images.</p>";
+    });
+</script>
+</body>
+</html>
+

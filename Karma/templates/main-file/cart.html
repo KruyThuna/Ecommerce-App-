@@ -1,0 +1,141 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include 'sub-file/css-style.html' %}
+
+    <style>
+      .product_count button {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'sub-file/header-menu.html' %}
+
+    <section class="banner-area organic-breadcrumb">
+      <!-- Breadcrumb -->
+    </section>
+
+    <section class="cart_area">
+      <div class="container">
+        <div class="cart_inner">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td>
+                    <div class="media">
+                      <div class="d-flex">
+                        {% if item.product.productImage %}
+                        <img
+                          src="{{ item.product.productImage.url }}"
+                          alt="{{ item.product.productName }}"
+                          style="width: 80px; height: 80px; object-fit: cover"
+                        />
+                        {% else %}
+                        <img
+                          src="{% static 'images/no-image.png' %}"
+                          alt="No image"
+                          style="width: 80px; height: 80px"
+                        />
+                        {% endif %}
+                      </div>
+                      <div class="media-body">
+                        <p>{{ item.product.productName }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td><h5>${{ item.product.price }}</h5></td>
+                  <td>
+                    <div class="product_count">
+                      <form
+                        method="post"
+                        action="{% url 'update_cart' item.product.id %}"
+                      >
+                        {% csrf_token %}
+                        <input
+                          type="number"
+                          name="quantity"
+                          value="{{ item.quantity }}"
+                          min="1"
+                          class="input-text qty"
+                        />
+                        <button type="submit" class="btn btn-sm">Update</button>
+                      </form>
+                    </div>
+                    <div class="product_count">
+                      <!-- Delete Form -->
+                      <form
+                        method="post"
+                        action="{% url 'remove_from_cart' item.product.id %}"
+                        onsubmit="return confirm('Are you sure you want to remove this item?');"
+                      >
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm">Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                  <td><h5>${{ item.item_total }}</h5></td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4">
+                    <p>
+                      Your cart is empty.
+                      <a href="{% url 'index' %}">Continue shopping</a>.
+                    </p>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            {% if items %}
+            <div class="cart_footer">
+              <div class="total_amount">
+                <table>
+                  <tr>
+                    <th>Subtotal</th>
+                    <td>${{ subtotal }}</td>
+                  </tr>
+                  <tr>
+                    <th>Shipping</th>
+                    <td>${{ shipping }}</td>
+                  </tr>
+                  <tr class="order_total">
+                    <th>Total</th>
+                    <td>${{ grand_total }}</td>
+                  </tr>
+                </table>
+                <div class="checkout_btn_inner d-flex justify-content-end">
+                  <a class="primary-btn" href="{% url 'category' %}"
+                    >Continue Shopping</a
+                  >
+                  <a href=""> </a>
+                  <a class="primary-btn" href="{% url 'checkout' %}"
+                    >Proceed to Checkout</a
+                  >
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {% include 'sub-file/footer.html' %} <b></b>
+    {% include 'sub-file/javascript.html' %}
+  </body>
+</html>

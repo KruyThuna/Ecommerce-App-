@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx" class="no-js">
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta charset="UTF-8" />
+    <title>Karma Shop - Checkout</title>
+    <link rel="shortcut icon" href="{% static 'img/fav.png' %}" />
+    {% include 'sub-file/css-style.html' %}
+
+    <style>
+      .order_box .list li a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        color: #777777;
+        font-weight: normal;
+        border-bottom: 1px solid #eeeeee;
+        line-height: 42px;
+      }
+
+      .order_box .list li a .middle {
+        text-align: right;
+        color: #222222;
+        margin-left: auto;
+        margin-right: 80px;
+        min-width: 50px;
+      }
+
+      .order_box .list li a .last {
+        min-width: 60px;
+        text-align: right;
+        color: #222222;
+      }
+    </style>
+  </head>
+
+  <body>
+    {% include 'sub-file/header-menu.html' %}
+
+    <!-- Start Banner Area -->
+    <section class="banner-area organic-breadcrumb">
+      <div class="container">
+        <div
+          class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end"
+        >
+          <div class="col-first">
+            <h1>Checkout</h1>
+            <nav class="d-flex align-items-center">
+              <a href="{% url 'index' %}"
+                >Home<span class="lnr lnr-arrow-right"></span
+              ></a>
+              <a href="#">Checkout</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--================Checkout Area =================-->
+    <section class="checkout_area section_gap">
+      <div class="container">
+        <div class="billing_details">
+          <div class="row">
+            <div class="col-lg-7">
+              <h3>Billing Details</h3>
+              <form
+                class="row contact_form"
+                method="post"
+                enctype="multipart/form-data"
+                novalidate="novalidate"
+              >
+                {% csrf_token %}
+                <div class="col-md-6 form-group p_star">
+                  {{ form.name.label_tag }} {{ form.name }}
+                </div>
+                <div class="col-md-6 form-group p_star">
+                  {{ form.phone.label_tag }} {{ form.phone }}
+                </div>
+
+                <!-- Upload payment proof (shown only for Digital Money) -->
+                <div
+                  class="col-md-12 form-group"
+                  id="payment_proof_group"
+                  style="display: none"
+                >
+                  <label for="payment_proof"
+                    >Upload Payment Proof (screenshot or receipt):</label
+                  >
+                  <input
+                    type="file"
+                    name="payment_proof"
+                    id="payment_proof"
+                    class="form-control"
+                    accept="image/*"
+                  />
+                </div>
+
+                <div class="col-md-12 form-group">
+                  <div class="creat_account">
+                    <input type="checkbox" id="terms" name="terms" required />
+                    <label for="terms">I’ve read and accept the </label>
+                    <a href="#">terms & conditions*</a>
+                  </div>
+                </div>
+                <div class="col-md-12 form-group">
+                  <button type="submit" class="primary-btn">Place Order</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="col-lg-5">
+              <div class="order_box">
+                <h2>Your Order</h2>
+                <ul class="list">
+                  <li>
+                    <a href="#">Product <span>Total</span></a>
+                  </li>
+                  {% for item in items %}
+                  <li>
+                    <a href="#">
+                      {{ item.product.productName }}
+                      <span class="middle">x {{ item.quantity }}</span>
+                      <span class="last">${{ item.item_total }}</span>
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+
+                <ul class="list list_2">
+                  <li>
+                    <a href="#">Subtotal <span>${{ total }}</span></a>
+                  </li>
+                  <li>
+                    <a href="#">Total <span>${{ total }}</span></a>
+                  </li>
+                </ul>
+
+                <div class="payment_item active">
+                  <div class="radion_btn">
+                    <input type="radio" id="payment" name="selector" checked />
+                    <label for="payment">Cash on Delivery</label>
+                    <div class="check"></div>
+                  </div>
+                </div>
+
+                <div class="payment_item">
+                  <div class="radion_btn">
+                    <input
+                      type="radio"
+                      id="digital_money"
+                      name="selector"
+                      value="digital_money"
+                    />
+                    <label for="digital_money">Digital Money</label>
+                    <div class="check"></div>
+                  </div>
+
+                  <div
+                    id="qr_codes_container"
+                    style="display: none; padding: 10px 0"
+                  >
+                    {% for qr in qrcodes %}
+                    <div class="qr_option" style="margin-bottom: 15px">
+                      <label>
+                        <input
+                          type="radio"
+                          name="qr_choice"
+                          value="{{ qr.id }}"
+                          data-img-id="qr_img_{{ qr.id }}"
+                        />
+                        {{ qr.qrName }}
+                      </label>
+                      <img
+                        id="qr_img_{{ qr.id }}"
+                        src="{{ qr.qrImage.url }}"
+                        alt="{{ qr.qrName }}"
+                        style="max-width: 100%; margin-top: 5px; display: none"
+                      />
+                    </div>
+
+                    {% endfor %}
+                  </div>
+                  <p>
+                    You will receive payment instructions after placing the
+                    order.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!--================End Checkout Area =================-->
+
+    {% include 'sub-file/footer.html' %} <b></b>
+    {% include 'sub-file/javascript.html' %}
+
+    <!-- JavaScript to toggle QR codes and file input -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const digitalMoneyRadio = document.getElementById("digital_money");
+        const cashRadio = document.getElementById("payment");
+        const qrCodesContainer = document.getElementById("qr_codes_container");
+        const paymentProofGroup = document.getElementById(
+          "payment_proof_group"
+        );
+
+        const paymentRadios = document.querySelectorAll(
+          'input[name="selector"]'
+        );
+
+        paymentRadios.forEach((radio) => {
+          radio.addEventListener("change", function () {
+            if (digitalMoneyRadio.checked) {
+              qrCodesContainer.style.display = "block";
+              if (paymentProofGroup) {
+                paymentProofGroup.style.display = "block";
+              }
+            } else {
+              qrCodesContainer.style.display = "none";
+              if (paymentProofGroup) {
+                paymentProofGroup.style.display = "none";
+              }
+
+              // Reset selections
+              document
+                .querySelectorAll('input[name="qr_choice"]')
+                .forEach((qrRadio) => {
+                  qrRadio.checked = false;
+                  const imgId = qrRadio.dataset.imgId;
+                  const img = document.getElementById(imgId);
+                  if (img) img.style.display = "none";
+                });
+
+              const proofInput = document.getElementById("payment_proof");
+              if (proofInput) proofInput.value = "";
+            }
+          });
+        });
+
+        // Show QR image on selection
+        document
+          .querySelectorAll('input[name="qr_choice"]')
+          .forEach((qrRadio) => {
+            qrRadio.addEventListener("change", () => {
+              // Hide all images first
+              document.querySelectorAll(".qr_option img").forEach((img) => {
+                img.style.display = "none";
+              });
+
+              // Show the selected image
+              const imgId = qrRadio.dataset.imgId;
+              const img = document.getElementById(imgId);
+              if (img) img.style.display = "block";
+            });
+          });
+      });
+    </script>
+  </body>
+</html>

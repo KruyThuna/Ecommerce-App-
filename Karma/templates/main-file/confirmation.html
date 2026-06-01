@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx" class="no-js">
+  <head>
+    <!-- Mobile Specific Meta -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="shortcut icon" href="{% static 'img/fav.png' %}" />
+    <meta name="author" content="CodePixar" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta charset="UTF-8" />
+    <title>Karma Shop</title>
+
+    {% include 'sub-file/css-style.html' %}
+  </head>
+
+  <body>
+    {% include 'sub-file/header-menu.html' %}
+
+    <section class="banner-area organic-breadcrumb">
+      <div class="container">
+        <div
+          class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end"
+        >
+          <div class="col-first">
+            <h1>Confirmation</h1>
+            <nav class="d-flex align-items-center">
+              <a href="{% url 'index' %}"
+                >Home<span class="lnr lnr-arrow-right"></span
+              ></a>
+              <a href="#">Confirmation</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="order_details section_gap">
+      <div class="container">
+        <h3 class="title_confirmation">
+          Thank you. Your order has been received.
+        </h3>
+
+        <div class="row order_d_inner">
+          <div class="col-lg-4">
+            <div class="details_item">
+              <h4>Order Info</h4>
+              <ul class="list">
+                <li>
+                  <a href="#"><span>Order number</span> : {{ order.id }}</a>
+                </li>
+                <li>
+                  <a href="#"
+                    ><span>Date</span> : {{ order.orderDate|date:"F d, Y" }}</a
+                  >
+                </li>
+                <li>
+                  <a href="#"
+                    ><span>Total</span> : USD {{ grand_total|floatformat:2 }}</a
+                  >
+                </li>
+                <li>
+                  <a href="#"
+                    ><span>Payment method</span> : {% if order.QRCodeInvoice %}
+                    Digital Payment {% else %} Cash on Delivery {% endif %}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="details_item">
+              <h4>Billing Address</h4>
+              <ul class="list">
+                <li>
+                  <a href="#"><span>Name</span> : {{ order.customerName }}</a>
+                </li>
+                <li>
+                  <a href="#"><span>Phone</span> : {{ order.customerPhone }}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="details_item">
+              <h4>Shipping Address</h4>
+              <ul class="list">
+                <li>
+                  <a href="#"><span>Name</span> : {{ order.customerName }}</a>
+                </li>
+                <li>
+                  <a href="#"><span>Phone</span> : {{ order.customerPhone }}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="order_details_table">
+          <h2>Order Details</h2>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Product</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for product in products %}
+                <tr>
+                  <td><p>{{ product.productName }}</p></td>
+                  <td><h5>x {{ product.qty }}</h5></td>
+                  <td><p>${{ product.price|floatformat:2 }}</p></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                  <td><h4>Subtotal</h4></td>
+                  <td></td>
+                  <td><p>${{ subtotal|floatformat:2 }}</p></td>
+                </tr>
+                <tr>
+                  <td><h4>Shipping</h4></td>
+                  <td></td>
+                  <td><p>Flat rate: ${{ shipping|floatformat:2 }}</p></td>
+                </tr>
+                <tr>
+                  <td><h4>Total</h4></td>
+                  <td></td>
+                  <td><p>${{ grand_total|floatformat:2 }}</p></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {% if order.QRCodeInvoice %}
+          <h4 style="margin-top: 30px">Uploaded Payment Proof</h4>
+          <div class="text-center">
+            <img
+              src="{{ order.QRCodeInvoice.url }}"
+              alt="Payment Proof"
+              style="
+                max-width: 400px;
+                margin-top: 10px;
+                border: 1px solid #ddd;
+                padding: 5px;
+              "
+            />
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% include 'sub-file/footer.html' %}
+    <b></b>
+    {% include 'sub-file/javascript.html' %}
+  </body>
+</html>

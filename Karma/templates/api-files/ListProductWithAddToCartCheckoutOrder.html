@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>eCommerce Demo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+      .pointer {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="singleInvoice" class="d-none"></div>
+    <div class="container my-4">
+      <h3>📦 Category</h3>
+      <div id="categoryList" class="d-flex gap-3 flex-wrap mb-4"></div>
+
+      <h4>🛍️ Products</h4>
+      <div id="productList" class="row g-3"></div>
+
+      <h4 class="mt-5">📖 Product Detail</h4>
+      <div id="productDetail"></div>
+
+      <h4 class="mt-5">🛒 Cart</h4>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="cartBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-end"><b>Total:</b></td>
+            <td id="cartTotal">$0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <h5 class="mt-4">🧾 Checkout</h5>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <input
+            type="text"
+            id="customerName"
+            class="form-control"
+            placeholder="Customer Name"
+          />
+        </div>
+        <div class="col-md-4">
+          <input
+            type="text"
+            id="customerPhone"
+            class="form-control"
+            placeholder="Phone"
+          />
+        </div>
+        <div class="col-md-4">
+          <select id="qrSelect" class="form-select">
+            <option disabled selected>Select QR</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- New File Upload Input -->
+      <div class="mb-3">
+        <label for="qrUpload" class="form-label"
+          >Or Upload Your Own QR Code Image:</label
+        >
+        <input
+          type="file"
+          id="qrUpload"
+          accept="image/*"
+          class="form-control"
+        />
+      </div>
+
+      <div id="qrImageContainer" class="mb-3"></div>
+      <button class="btn btn-success" onclick="checkout()">✅ Check Out</button>
+
+      <div id="invoiceSection" class="d-none mt-5">
+        <h4>🖨️ Invoice</h4>
+        <div id="invoiceContent"></div>
+        <button class="btn btn-outline-primary" onclick="window.print()">
+          Print
+        </button>
+      </div>
+
+      <div class="mt-5">
+        <h5>📚 Order History</h5>
+        <ul id="orderHistory" class="list-group"></ul>
+      </div>
+    </div>
+    <!-- Modal -->
+    <!-- Bootstrap Modal -->
+    <div
+      class="modal fade"
+      id="productDetailModal"
+      tabindex="-1"
+      aria-labelledby="productDetailModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="productDetailModalLabel">
+              Product Detail
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="productDetailContent">
+            <!-- Detail content here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="invoiceModal"
+      tabindex="-1"
+      aria-labelledby="invoiceModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="invoiceModalLabel">
+              🧾 Invoice Preview
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="modalInvoiceContent">
+            <!-- Injected invoice HTML -->
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+            <button class="btn btn-primary" onclick="printInvoiceFromModal()">
+              🖨️ Print
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("qrSelect")
+        .addEventListener("change", function () {
+          const imgUrl =
+            this.selectedOptions[0]?.getAttribute("data-img") || "";
+          if (imgUrl) {
+            document.getElementById(
+              "qrImageContainer"
+            ).innerHTML = `<img src="${imgUrl}" width="120" class="img-thumbnail" />`;
+          } else {
+            document.getElementById("qrImageContainer").innerHTML = "";
+          }
+        });
+
+      document
+        .getElementById("qrUpload")
+        .addEventListener("change", function () {
+          if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              document.getElementById(
+                "qrImageContainer"
+              ).innerHTML = `<img src="${e.target.result}" width="120" class="img-thumbnail" />`;
+            };
+            reader.readAsDataURL(this.files[0]);
+          } else {
+            document.getElementById("qrImageContainer").innerHTML = "";
+          }
+        });
+    </script>
+
+    <script>
+      let cart = [];
+
+      // CSRF Token helper for Django
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      const csrftoken = getCookie("csrftoken");
+
+      // Fetch categories and display buttons
+      function fetchCategories() {
+        fetch("categories/")
+          .then((res) => res.json())
+          .then((data) => {
+            const container = document.getElementById("categoryList");
+            container.innerHTML = "";
+            data.forEach((cat) => {
+              container.innerHTML += `<button class="btn btn-outline-dark" onclick="loadProducts(${cat.id})">${cat.categoryName}</button>`;
+            });
+          });
+      }
+
+      // Load products filtered by category
+      function loadProducts(categoryId) {
+        fetch(`/products/?categoryID=${categoryId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const container = document.getElementById("productList");
+            container.innerHTML = "";
+            data.forEach((p) => {
+              // fallback for productImage if null or empty string
+              const imgSrc = p.productImage
+                ? p.productImage
+                : "https://via.placeholder.com/300x180?text=No+Image";
+              container.innerHTML += `<div class="col-md-4">
+            <div class="card">
+              <img src="${imgSrc}" class="card-img-top" style="height:180px;object-fit:cover" alt="${
+                p.productName
+              }">
+              <div class="card-body">
+                <h5>${p.productName}</h5>
+                <p>$${p.price}</p>
+                <button class="btn btn-info" onclick="loadDetail(${
+                  p.id
+                })">View Detail</button>
+                <button class="btn btn-primary" onclick="addToCart('${p.productName.replace(
+                  /'/g,
+                  "\\'"
+                )}', ${p.price})">Add to Cart</button>
+              </div>
+            </div>
+          </div>`;
+            });
+          });
+      }
+
+      // Load product detail (assuming API returns array, get first element)
+      function loadDetail(productId) {
+        const modal = new bootstrap.Modal(
+          document.getElementById("productDetailModal"),
+          {
+            backdrop: "static",
+            keyboard: true,
+          }
+        );
+
+        const modalTitle = document.getElementById("productDetailModalLabel");
+        const modalBody = document.getElementById("productDetailContent");
+
+        modalTitle.textContent = "Loading...";
+        modalBody.innerHTML = '<p class="text-muted">Please wait...</p>';
+
+        fetch(`/productdetails/?productID=${productId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            modalBody.innerHTML = "";
+            if (data.length === 0) {
+              modalTitle.textContent = "No Details Found";
+              modalBody.innerHTML =
+                '<div class="alert alert-warning">No product detail available for this product.</div>';
+            } else {
+              modalTitle.textContent =
+                data[0].productDetailName || "Product Details";
+              data.forEach((d) => {
+                modalBody.innerHTML += `
+            <div class="border rounded mb-3 p-3 bg-light">
+              <h6>${d.productDetailName}</h6>
+              <div><strong>Description:</strong> ${d.Description}</div>
+              <div><strong>Information:</strong> ${d.Information}</div>
+              <div><strong>Reviews:</strong> ${d.Reviews}</div>
+            </div>
+          `;
+              });
+            }
+
+            modal.show();
+          })
+          .catch((error) => {
+            console.error("❌ Error fetching detail:", error);
+            modalTitle.textContent = "Error";
+            modalBody.innerHTML =
+              '<div class="alert alert-danger">Failed to load details.</div>';
+            modal.show();
+          });
+      }
+
+      // Add product to cart or increase qty
+      function addToCart(name, price) {
+        const existing = cart.find((i) => i.name === name);
+        if (existing) existing.qty++;
+        else cart.push({ name, price, qty: 1 });
+        renderCart();
+      }
+
+      // Render cart table
+      function renderCart() {
+        const tbody = document.getElementById("cartBody");
+        let total = 0;
+        tbody.innerHTML = "";
+        cart.forEach((i, index) => {
+          const sub = i.qty * i.price;
+          total += sub;
+          tbody.innerHTML += `<tr>
+        <td>${i.name}</td><td>${i.qty}</td><td>$${i.price.toFixed(
+            2
+          )}</td><td>$${sub.toFixed(2)}</td>
+        <td><button class='btn btn-sm btn-danger' onclick='removeItem(${index})'>Remove</button></td>
+      </tr>`;
+        });
+        document.getElementById("cartTotal").textContent = `$${total.toFixed(
+          2
+        )}`;
+      }
+
+      function removeItem(index) {
+        cart.splice(index, 1);
+        renderCart();
+      }
+
+      // Checkout order
+      function checkout() {
+        const name = document.getElementById("customerName").value.trim();
+        const phone = document.getElementById("customerPhone").value.trim();
+        const total = cart.reduce((sum, i) => sum + i.qty * i.price, 0);
+        const qrSelect = document.getElementById("qrSelect");
+        const qrUpload = document.getElementById("qrUpload");
+
+        if (!name || !phone || cart.length === 0) {
+          return alert("Please fill all fields and add items to cart.");
+        }
+
+        // Create FormData for multipart/form-data upload
+        const formData = new FormData();
+        formData.append("customerName", name);
+        formData.append("customerPhone", phone);
+        formData.append("totalAmount", total);
+
+        // Add QR code: if file uploaded, append file; else append QRCodeInvoice ID from select
+        if (qrUpload.files.length > 0) {
+          formData.append("QRCodeInvoice", qrUpload.files[0]);
+        } else if (qrSelect.value) {
+          formData.append("QRCodeInvoice", qrSelect.value);
+        } else {
+          return alert("Please select or upload a QR Code.");
+        }
+
+        // Append order items as JSON string
+        formData.append(
+          "items",
+          JSON.stringify(
+            cart.map((i) => ({
+              productName: i.name,
+              price: i.price,
+              qty: i.qty,
+            }))
+          )
+        );
+
+        fetch("/orders/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"), // make sure csrf token is sent
+            // No Content-Type header here — browser sets it automatically
+          },
+          body: formData,
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+          })
+          .then((order) => {
+            alert("✅ Order saved!");
+            renderInvoice(order);
+            cart = [];
+            renderCart();
+            loadOrderHistory();
+            // Reset form and file input
+            document.getElementById("customerName").value = "";
+            document.getElementById("customerPhone").value = "";
+            qrUpload.value = "";
+            qrSelect.selectedIndex = 0;
+            document.getElementById("qrImageContainer").innerHTML = "";
+          })
+          .catch((err) => alert("Error: " + err.message));
+      }
+
+      // Helper to get CSRF token cookie (if using Django CSRF)
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Render invoice section
+      function renderInvoice(order) {
+        const content = document.getElementById("invoiceContent");
+        document.getElementById("invoiceSection").classList.remove("d-none");
+
+        // បម្លែង totalAmount ទៅ Number មុនប្រើ toFixed
+        const totalAmount = Number(order.totalAmount);
+
+        let html = `<p>Invoice #: ${order.id}<br>Date: ${
+          order.orderDate
+        }<br>Total: $${totalAmount.toFixed(2)}</p>`;
+
+        if (order.QRCodeInvoice) {
+          html += `<img src="${order.QRCodeInvoice}" width="150">`;
+        }
+
+        html +=
+          '<table class="table"><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead><tbody>';
+
+        order.items.forEach((i) => {
+          // បម្លែង price និង qty ទៅ number មុនគណនា subtotal
+          const price = Number(i.price);
+          const qty = Number(i.qty);
+          const subtotal = price * qty;
+
+          html += `<tr>
+      <td>${i.productName}</td>
+      <td>${qty}</td>
+      <td>$${price.toFixed(2)}</td>
+      <td>$${subtotal.toFixed(2)}</td>
+    </tr>`;
+        });
+
+        html += "</tbody></table>";
+        content.innerHTML = html;
+      }
+
+      // Load order history and display
+      function loadOrderHistory() {
+        fetch("/orders/")
+          .then((res) => res.json())
+          .then((data) => {
+            const list = document.getElementById("orderHistory");
+            list.innerHTML = "";
+            data.forEach((o) => {
+              list.innerHTML += `<li class="list-group-item">
+          🧾 <b>${o.customerName}</b> | ☎️ ${o.customerPhone}<br>
+          🕒 ${new Date(o.orderDate).toLocaleString()} | 💲${o.totalAmount}<br>
+          📦 Items: ${o.items
+            .map((i) => `${i.productName} (${i.qty})`)
+            .join(", ")}<br>
+          <button class="btn btn-sm btn-outline-primary mt-2" onclick="showInvoiceModal(${
+            o.id
+          })">🧾 Show Invoice</button>
+        </li>`;
+            });
+          });
+      }
+
+      function showInvoiceModal(orderId) {
+        fetch(`/orders/${orderId}/`)
+          .then((res) => res.json())
+          .then((order) => {
+            const html = generateInvoiceHTML(order);
+            document.getElementById("modalInvoiceContent").innerHTML = html;
+
+            const modal = new bootstrap.Modal(
+              document.getElementById("invoiceModal")
+            );
+            modal.show();
+          });
+      }
+
+      function printInvoiceFromModal() {
+        const content = document.getElementById(
+          "modalInvoiceContent"
+        ).innerHTML;
+        const printWindow = window.open("", "", "width=800,height=600");
+        printWindow.document.write(`
+    <html>
+      <head>
+        <title>Invoice</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+      </head>
+      <body>${content}</body>
+    </html>
+  `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 500);
+      }
+
+      function printInvoice(orderId) {
+        fetch(`/orders/${orderId}/`)
+          .then((res) => res.json())
+          .then((order) => {
+            const content = generateInvoiceHTML(order);
+
+            // Inject into hidden div
+            document.getElementById("singleInvoice").innerHTML = content;
+
+            // Open new window for print
+            const printWindow = window.open("", "", "width=800,height=600");
+            printWindow.document.write(`
+        <html>
+          <head>
+            <title>Invoice #${order.id}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+          </head>
+          <body>${content}</body>
+        </html>
+      `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => printWindow.print(), 500);
+          })
+          .catch((err) => {
+            alert("Failed to load invoice for printing");
+            console.error(err);
+          });
+      }
+
+      function generateInvoiceHTML(order) {
+        let html = `<div class="container my-4">
+    <h3>🧾 Invoice #${order.id}</h3>
+    <p><b>Name:</b> ${order.customerName}<br>
+       <b>Phone:</b> ${order.customerPhone}<br>
+       <b>Date:</b> ${new Date(order.orderDate).toLocaleString()}<br>
+       <b>Total:</b> $${parseFloat(order.totalAmount).toFixed(2)}</p>`;
+
+        if (order.QRCodeInvoice) {
+          html += `<p><b>Payment QR:</b><br><img src="${order.QRCodeInvoice}" width="120"></p>`;
+        }
+
+        html += `<table class="table table-bordered">
+    <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead><tbody>`;
+
+        order.items.forEach((i) => {
+          const sub = i.qty * i.price;
+          html += `<tr><td>${i.productName}</td><td>${i.qty}</td><td>$${
+            i.price
+          }</td><td>$${sub.toFixed(2)}</td></tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        return html;
+      }
+
+      // Load QR codes into select
+      const qrSelect = document.getElementById("qrSelect");
+      const qrImageContainer = document.getElementById("qrImageContainer");
+
+      fetch("/qrcodes/")
+        .then((res) => res.json())
+        .then((data) => {
+          data.forEach((qr) => {
+            qrSelect.innerHTML += `<option value="${qr.id}" data-img="${qr.qrImage}">${qr.qrName}</option>`;
+          });
+        });
+
+      qrSelect.addEventListener("change", function () {
+        const img = this.selectedOptions[0].getAttribute("data-img");
+        qrImageContainer.innerHTML = `<img src="${img}" width="120" alt="Selected QR Code">`;
+      });
+
+      // Initial load
+      fetchCategories();
+      loadOrderHistory();
+      renderCart();
+      // When user selects from dropdown or uploads a file, show preview
+    </script>
+  </body>
+</html>

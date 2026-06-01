@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image & Menu CRUD</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+  <h2>Manage Images</h2>
+
+  <form id="imageForm" class="mb-4">
+    <input type="hidden" id="imageId">
+    <div class="mb-2">
+      <input type="text" id="imageName" placeholder="Image Name" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <input type="text" id="imageLink" placeholder="Image Link" class="form-control">
+    </div>
+    <div class="mb-2">
+      <input type="text" id="active" placeholder="Active Status" class="form-control">
+    </div>
+    <div class="mb-2">
+      <select id="imageTypeID" class="form-control">
+        <!-- filled by JS -->
+      </select>
+    </div>
+    <div class="mb-2">
+      <input type="file" id="imageFile" class="form-control">
+    </div>
+    <button class="btn btn-primary">Save Image</button>
+  </form>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr><th>Image</th><th>Name</th><th>Link</th><th>Active</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="imageTable"></tbody>
+  </table>
+
+  <hr class="my-5">
+
+  <h2>Manage Menus</h2>
+
+  <form id="menuForm" class="mb-4">
+    <input type="hidden" id="menuId">
+    <div class="mb-2">
+      <input type="text" id="menuNameKH" placeholder="Menu Name KH" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <input type="text" id="menuNameEN" placeholder="Menu Name EN" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <input type="number" id="orderBy" placeholder="Order By" class="form-control">
+    </div>
+    <button class="btn btn-success">Save Menu</button>
+  </form>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr><th>Name KH</th><th>Name EN</th><th>Order</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="menuTable"></tbody>
+  </table>
+</div>
+
+<script>
+  const IMAGE_API = '/images/';
+  const MENU_API = '/menus/';
+  const IMAGETYPE_API = '/imagetypes/';
+
+  // Fetch ImageType for dropdown
+  fetch(IMAGETYPE_API)
+    .then(res => res.json())
+    .then(data => {
+      const dropdown = document.getElementById('imageTypeID');
+      dropdown.innerHTML = data.map(d => `<option value="${d.id}">${d.ImageTypeName}</option>`).join('');
+    });
+
+  // Fetch Images
+  function fetchImages() {
+    fetch(IMAGE_API)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById('imageTable');
+        table.innerHTML = '';
+        data.forEach(img => {
+          table.innerHTML += `
+            <tr>
+              <td><img src="${img.ImageURL}" width="100"/></td>
+              <td>${img.ImageName}</td>
+              <td><a href="${img.ImageLink}" target="_blank">Link</a></td>
+              <td>${img.Active}</td>
+              <td>
+                <button class="btn btn-sm btn-warning" onclick="editImage(${img.id}, '${img.ImageName}', '${img.ImageLink}', '${img.Active}', ${img.ImageTypeID})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteImage(${img.id})">Delete</button>
+              </td>
+            </tr>`;
+        });
+      });
+  }
+
+  document.getElementById('imageForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = document.getElementById('imageId').value;
+    const formData = new FormData();
+    formData.append('ImageName', document.getElementById('imageName').value);
+    formData.append('ImageLink', document.getElementById('imageLink').value);
+    formData.append('Active', document.getElementById('active').value);
+    formData.append('ImageTypeID', document.getElementById('imageTypeID').value);
+    const file = document.getElementById('imageFile').files[0];
+    if (file) formData.append('ImageURL', file);
+
+    fetch(id ? `${IMAGE_API}${id}/` : IMAGE_API, {
+      method: id ? 'PUT' : 'POST',
+      body: formData
+    }).then(() => {
+      fetchImages();
+      e.target.reset();
+      document.getElementById('imageId').value = '';
+    });
+  });
+
+  function editImage(id, name, link, active, typeId) {
+    document.getElementById('imageId').value = id;
+    document.getElementById('imageName').value = name;
+    document.getElementById('imageLink').value = link;
+    document.getElementById('active').value = active;
+    document.getElementById('imageTypeID').value = typeId;
+  }
+
+  function deleteImage(id) {
+    if (confirm("Delete this image?")) {
+      fetch(`${IMAGE_API}${id}/`, { method: 'DELETE' }).then(fetchImages);
+    }
+  }
+
+  // ====== MENU CRUD ======
+  function fetchMenus() {
+    fetch(MENU_API)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById('menuTable');
+        table.innerHTML = '';
+        data.forEach(menu => {
+          table.innerHTML += `
+            <tr>
+              <td>${menu.MenuNameKH}</td>
+              <td>${menu.MenuNameEN}</td>
+              <td>${menu.OrderBy}</td>
+              <td>
+                <button class="btn btn-sm btn-warning" onclick="editMenu(${menu.id}, '${menu.MenuNameKH}', '${menu.MenuNameEN}', ${menu.OrderBy})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteMenu(${menu.id})">Delete</button>
+              </td>
+            </tr>`;
+        });
+      });
+  }
+
+  document.getElementById('menuForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = document.getElementById('menuId').value;
+    const data = {
+      MenuNameKH: document.getElementById('menuNameKH').value,
+      MenuNameEN: document.getElementById('menuNameEN').value,
+      OrderBy: document.getElementById('orderBy').value
+    };
+
+    fetch(id ? `${MENU_API}${id}/` : MENU_API, {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(() => {
+      fetchMenus();
+      e.target.reset();
+      document.getElementById('menuId').value = '';
+    });
+  });
+
+  function editMenu(id, kh, en, order) {
+    document.getElementById('menuId').value = id;
+    document.getElementById('menuNameKH').value = kh;
+    document.getElementById('menuNameEN').value = en;
+    document.getElementById('orderBy').value = order;
+  }
+
+  function deleteMenu(id) {
+    if (confirm("Delete this menu?")) {
+      fetch(`${MENU_API}${id}/`, { method: 'DELETE' }).then(fetchMenus);
+    }
+  }
+
+  // Initial Load
+  fetchImages();
+  fetchMenus();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zxx" class="no-js">
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="shortcut icon" href="{% static 'img/fav.png' %}" />
+    <meta name="author" content="CodePixar" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta charset="UTF-8" />
+    <title>Karma Shop</title>
+    {% include 'sub-file/css-style.html' %}
+
+    <style>
+      .btnCart {
+        border: none;
+        cursor: pointer;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body id="category">
+    {% include 'sub-file/header-menu.html' %}
+
+    <section class="banner-area organic-breadcrumb">
+      <div class="container">
+        <div
+          class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end"
+        >
+          <div class="col-first">
+            <h1>Shop Category Page</h1>
+            <nav class="d-flex align-items-center">
+              <a href="{% url 'index' %}"
+                >Home<span class="lnr lnr-arrow-right"></span
+              ></a>
+              <a href="#">Shop</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-xl-3 col-lg-4 col-md-5">
+          <div class="sidebar-categories">
+            <div class="head">
+              <a style="color: white;" href="{% url 'category' %}">Browse Categories</a>
+              </div>
+            <ul class="main-categories">
+              {% for category in categories %}
+              <li class="main-nav-list">
+                <a href="?category={{ category.id }}">
+                  <span class="lnr lnr-arrow-right"></span>
+                  {{ category.categoryName }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <form method="get" id="filterForm">
+            <div class="sidebar-filter mt-50">
+              <div class="top-filter-head">Product Filters</div>
+
+              <!-- Brand Filter -->
+              <div class="common-filter">
+                <div class="head">Brands</div>
+                <ul>
+                  {% for brand in brands %}
+                  <li class="filter-list">
+                    <input class="pixel-radio" type="radio" id="brand{{ brand.id
+                    }}" name="brand" value="{{ brand.id }}" {% if
+                    brand.id|stringformat:"s" == request.GET.brand %}checked{%
+                    endif %}
+                    onchange="document.getElementById('filterForm').submit()" />
+                    <label for="brand{{ brand.id }}"
+                      >{{ brand.brandName }}</label
+                    >
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Main Product List -->
+        <div class="col-xl-9 col-lg-8 col-md-7">
+
+          <div class="filter-bar d-flex flex-wrap align-items-center">
+            <!-- Product Stock Selector -->
+            <div class="sorting">
+              <form method="get" id="stockForm">
+                <select name="stock" onchange="document.getElementById('stockForm').submit()">
+                  <option value="">All Stocks</option>
+                  <option value="Latest Products" {% if request.GET.stock == "Latest Products" %}selected{% endif %}>Latest Products</option>
+                  <option value="Coming Products" {% if request.GET.stock == "Coming Products" %}selected{% endif %}>Coming Products</option>
+                </select>
+                <!-- Preserve other filters -->
+                {% if request.GET.brand %}
+                  <input type="hidden" name="brand" value="{{ request.GET.brand }}">
+                {% endif %}
+                {% if request.GET.category %}
+                  <input type="hidden" name="category" value="{{ request.GET.category }}">
+                {% endif %}
+              </form>
+            </div>
+
+            <!-- Page Jump Selector -->
+            <div class="sorting mr-auto">
+              <form method="get" id="pageJumpForm">
+                <select name="page" onchange="document.getElementById('pageJumpForm').submit()">
+                  {% for num in products.paginator.page_range %}
+                    <option value="{{ num }}" {% if products.number == num %}selected{% endif %}>Page {{ num }}</option>
+                  {% endfor %}
+                </select>
+                <!-- Preserve filters -->
+                {% if request.GET.stock %}
+                  <input type="hidden" name="stock" value="{{ request.GET.stock }}">
+                {% endif %}
+                {% if request.GET.brand %}
+                  <input type="hidden" name="brand" value="{{ request.GET.brand }}">
+                {% endif %}
+                {% if request.GET.category %}
+                  <input type="hidden" name="category" value="{{ request.GET.category }}">
+                {% endif %}
+              </form>
+            </div>
+
+            <!-- Pagination Navigation -->
+            <div class="pagination">
+              {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="prev-arrow">
+                  <i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+              {% for num in products.paginator.page_range %}
+                <a href="?page={{ num }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="{% if products.number == num %}active{% endif %}">{{ num }}</a>
+              {% endfor %}
+              {% if products.paginator.num_pages > 5 %}
+                <a href="#" class="dot-dot"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a>
+                <a href="?page={{ products.paginator.num_pages }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ products.paginator.num_pages }}</a>
+              {% endif %}
+              {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="next-arrow">
+                  <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+
+          
+          <!-- Product Listing -->
+          <section class="lattest-product-area pb-40 category-list">
+            <div class="row">
+              {% for product in products %}
+              <div class="col-lg-4 col-md-6">
+                <div class="single-product">
+                  <img
+                    class="img-fluid"
+                    src="{{ product.productImage.url }}"
+                    alt="{{ product.productName }}"
+                  />
+                  <div class="product-details">
+                    <h6>{{ product.productName }}</h6>
+                    <div class="price">
+                      <h6>${{ product.price|floatformat:2 }}</h6>
+                    </div>
+                    <div class="prd-bottom">
+                      <form
+                        method="post"
+                        action="{% url 'add_to_cart' product.pk %}"
+                        class="social-info"
+                      >
+                        {% csrf_token %}
+                        <button type="submit" class="btnCart">
+                          <span class="ti-bag"></span>
+                          <p class="hover-text">beg</p>
+                        </button>
+                      </form>
+                      <a href="#" class="social-info">
+                        <span class="lnr lnr-heart"></span>
+                        <p class="hover-text">Wishlist</p>
+                      </a>
+                      <a href="" class="social-info">
+                        <span class="lnr lnr-sync"></span>
+                        <p class="hover-text">compare</p>
+                      </a>
+                      <a
+                        href="{% url 'product_detail' product.id %}"
+                        class="social-info"
+                      >
+                        <span class="lnr lnr-move"></span>
+                        <p class="hover-text">view more</p>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <p class="ml-3">No products found.</p>
+              {% endfor %}
+            </div>
+          </section>
+
+          <!-- Pagination -->
+          <div class="filter-bar d-flex flex-wrap align-items-center">
+
+            <!-- Page Jump Selector -->
+            <div class="sorting mr-auto">
+              <form method="get" id="pageJumpForm">
+                <select name="page" onchange="document.getElementById('pageJumpForm').submit()">
+                  {% for num in products.paginator.page_range %}
+                    <option value="{{ num }}" {% if products.number == num %}selected{% endif %}>Page {{ num }}</option>
+                  {% endfor %}
+                </select>
+                <!-- Preserve filters -->
+                {% if request.GET.stock %}
+                  <input type="hidden" name="stock" value="{{ request.GET.stock }}">
+                {% endif %}
+                {% if request.GET.brand %}
+                  <input type="hidden" name="brand" value="{{ request.GET.brand }}">
+                {% endif %}
+                {% if request.GET.category %}
+                  <input type="hidden" name="category" value="{{ request.GET.category }}">
+                {% endif %}
+              </form>
+            </div>
+
+            <!-- Pagination Navigation -->
+            <div class="pagination">
+              {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="prev-arrow">
+                  <i class="fa fa-long-arrow-left" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+              {% for num in products.paginator.page_range %}
+                <a href="?page={{ num }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="{% if products.number == num %}active{% endif %}">{{ num }}</a>
+              {% endfor %}
+              {% if products.paginator.num_pages > 5 %}
+                <a href="#" class="dot-dot"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a>
+                <a href="?page={{ products.paginator.num_pages }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ products.paginator.num_pages }}</a>
+              {% endif %}
+              {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.brand %}&brand={{ request.GET.brand }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="next-arrow">
+                  <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 50px; width: 100%"></div>
+
+    {% include 'sub-file/footer.html' %} <b></b>
+    {% include 'sub-file/javascript.html' %}
+  </body>
+</html>

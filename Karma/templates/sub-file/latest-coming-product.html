@@ -1,0 +1,149 @@
+{% load static%}
+
+<style>
+  .btnCart {
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+</style>
+
+<section class="owl-carousel active-product-area section_gap">
+  <!-- single product slide -->
+  <div class="single-product-slider">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+          <div class="section-title">
+            <h1>Latest Products</h1>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        {% for product in latest_products %}
+        <!-- single product -->
+        <div class="col-lg-3 col-md-6">
+          <div class="single-product">
+            <img
+              class="img-fluid"
+              src="media/{{ product.productImage }}"
+              alt="{{ product.productName }}"
+            />
+            <div class="product-details">
+              <h6>{{ product.productName }}</h6>
+              <div class="price">
+                <h6>${{ product.price }}</h6>
+                <h6 class="l-through">$210.00</h6>
+              </div>
+              <div class="prd-bottom">
+                <a href="" class="social-info">
+                  <form
+                    method="post"
+                    action="{% url 'add_to_cart' product.pk %}"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="btnCart">
+                      <span class="ti-bag"></span>
+                      <p class="hover-text">beg</p>
+                    </button>
+                  </form>
+                </a>
+                <a href="" class="social-info">
+                  <span class="lnr lnr-heart"></span>
+                  <p class="hover-text">Wishlist</p>
+                </a>
+                <a href="" class="social-info">
+                  <span class="lnr lnr-sync"></span>
+                  <p class="hover-text">compare</p>
+                </a>
+                <a
+                  href="{% url 'product_detail' product.id %}"
+                  class="social-info"
+                >
+                  <span class="lnr lnr-move"></span>
+                  <p class="hover-text">view more</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <!-- end single product -->
+      </div>
+    </div>
+  </div>
+  <!-- single product slide -->
+  <div class="single-product-slider">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+          <div class="section-title">
+            <h1>Coming Products</h1>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <!-- single product -->
+        {% for product in coming_products %}
+        <!-- single product -->
+        <div class="col-lg-3 col-md-6">
+          <div class="single-product">
+            <img
+              class="img-fluid"
+              src="media/{{ product.productImage }}"
+              alt="{{ product.productName }}"
+            />
+            <div class="product-details">
+              <h6>{{ product.productName }}</h6>
+              <div class="price">
+                <h6>${{ product.price }}</h6>
+                <h6 class="l-through">$210.00</h6>
+              </div>
+              <div class="prd-bottom">
+                <a href="" class="social-info">
+                  <form
+                    method="post"
+                    action="{% url 'add_to_cart' product.pk %}"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="btnCart">
+                      <span class="ti-bag"></span>
+                      <p class="hover-text">beg</p>
+                    </button>
+                  </form>
+                </a>
+                <a href="" class="social-info">
+                  <span class="lnr lnr-heart"></span>
+                  <p class="hover-text">Wishlist</p>
+                </a>
+                <a href="" class="social-info">
+                  <span class="lnr lnr-sync"></span>
+                  <p class="hover-text">compare</p>
+                </a>
+                <a
+                  href="{% url 'product_detail' product.id %}"
+                  class="social-info"
+                >
+                  <span class="lnr lnr-move"></span>
+                  <p class="hover-text">view more</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <!-- end single product -->
+      </div>
+    </div>
+  </div>
+</section>
