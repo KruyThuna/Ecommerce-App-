@@ -70,7 +70,9 @@ TEMPLATES = [
         },
     },
 ]
+from decouple import config
 
+GOOGLE_API_KEY = config("GOOGLE_API_KEY", default="")
 WSGI_APPLICATION = 'EcommerceProject.wsgi.application'
 
 
